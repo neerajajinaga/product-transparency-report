@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Product Transparency Report</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 15px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #report-container {
+      margin-top: 30px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Product Transparency Report</h1>
+
+  <form id="reportForm">
+    <label>Product Name:</label>
+    <input type="text" name="product_name" required />
+
+    <label>Category:</label>
+    <input type="text" name="category" required />
+
+    <label>Ingredients:</label>
+    <textarea name="ingredients" required></textarea>
+
+    <label>Benefits:</label>
+    <textarea name="benefits" required></textarea>
+
+    <label>Manufacturing Date:</label>
+    <input type="date" name="manufacturing_date" required />
+
+    <label>Expiry Date:</label>
+    <input type="date" name="expiry_date" required />
+
+    <label>Certifications:</label>
+    <input type="text" name="certifications" required />
+
+    <button type="submit">Generate Report</button>
+  </form>
+
+  <div id="report-text" style="margin-bottom: 20px;"></div>
+
+    <h2>✅ Report Generated</h2>
+    <a id="download-link" href="#" download="Product_Report.pdf">
+      <button style="background-color: #007bff;">Download PDF</button>
+    </a>
+  </div>
+
+  <script>
+  const form = document.getElementById("reportForm");
+  const reportContainer = document.getElementById("report-container");
+  const reportText = document.getElementById("report-text");
+  const downloadLink = document.getElementById("download-link");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const jsonData = Object.fromEntries(formData.entries());
+
+    // 1. Show preview
+    const previewRes = await fetch("http://127.0.0.1:8000/preview-report", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(jsonData),
+    });
+
+    const previewData = await previewRes.json();
+    reportText.innerHTML = previewData.report_html;
+    reportContainer.style.display = "block";
+
+    // 2. Generate PDF
+    const pdfRes = await fetch("http://127.0.0.1:8000/generate-report", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(jsonData),
+    });
+
+    if (pdfRes.ok) {
+      const blob = await pdfRes.blob();
+      const url = URL.createObjectURL(blob);
+      downloadLink.href = url;
+    } else {
+      alert("❌ Failed to generate PDF.");
+    }
+  });
+</script>
+</body>
+</html>
