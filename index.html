@@ -72,55 +72,51 @@
   </div>
 
   <script>
-  const form = document.getElementById("reportForm");
-  const reportContainer = document.getElementById("report-container");
-  const reportText = document.getElementById("report-text");
-  const downloadLink = document.getElementById("download-link");
+    const form = document.getElementById("reportForm");
+    const reportContainer = document.getElementById("report-container");
+    const reportText = document.getElementById("report-text");
+    const downloadLink = document.getElementById("download-link");
 
-  const baseUrl = window.location.origin;
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const jsonData = Object.fromEntries(formData.entries());
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const formData = new FormData(form);
-    const jsonData = Object.fromEntries(formData.entries());
+      const baseUrl = window.location.origin;
 
-    try {
-      const previewRes = await fetch(`${baseUrl}/preview-report`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(jsonData),
-      });
+      try {
+        const previewRes = await fetch(`${baseUrl}/preview-report`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(jsonData),
+        });
 
-      if (!previewRes.ok) {
-        throw new Error("Preview API failed");
+        const previewData = await previewRes.json();
+
+        if (!previewData || !previewData.report_html) {
+          throw new Error("Preview response is missing 'report_html'");
+        }
+
+        reportText.innerHTML = previewData.report_html;
+        reportContainer.style.display = "block";
+
+        const pdfRes = await fetch(`${baseUrl}/generate-report`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(jsonData),
+        });
+
+        if (pdfRes.ok) {
+          const blob = await pdfRes.blob();
+          const url = URL.createObjectURL(blob);
+          downloadLink.href = url;
+        } else {
+          alert("❌ PDF generation failed.");
+        }
+      } catch (error) {
+        alert("❌ Error: " + error.message);
       }
-
-      const previewData = await previewRes.json();
-
-      if (!previewData.report_html) {
-        throw new Error("Preview response missing 'report_html'");
-      }
-
-      reportText.innerHTML = previewData.report_html;
-      reportContainer.style.display = "block";
-
-      const pdfRes = await fetch(`${baseUrl}/generate-report`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(jsonData),
-      });
-
-      if (pdfRes.ok) {
-        const blob = await pdfRes.blob();
-        const url = URL.createObjectURL(blob);
-        downloadLink.href = url;
-      } else {
-        alert("❌ Failed to generate PDF.");
-      }
-    } catch (error) {
-      alert("❌ Error occurred: " + error.message);
-    }
-  });
-</script>
+    });
+  </script>
 </body>
 </html>
