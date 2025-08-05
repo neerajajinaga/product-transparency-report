@@ -63,7 +63,6 @@
     <button type="submit">Generate Report</button>
   </form>
 
-  <!-- Report Preview + Download -->
   <div id="report-container">
     <div id="report-text" style="margin-bottom: 20px;"></div>
     <h2>✅ Report Generated</h2>
@@ -73,47 +72,50 @@
   </div>
 
   <script>
+    const baseUrl = "https://product-transparency-report.onrender.com";
+
     const form = document.getElementById("reportForm");
     const reportContainer = document.getElementById("report-container");
     const reportText = document.getElementById("report-text");
     const downloadLink = document.getElementById("download-link");
-
-    const baseUrl = "https://product-transparency-report.onrender.com/"; // Your deployment URL
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const formData = new FormData(form);
       const jsonData = Object.fromEntries(formData.entries());
 
-      // 1. Fetch preview summary
-      const previewRes = await fetch(`${baseUrl}/preview-report`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(jsonData),
-      });
+      try {
+        // 1. Preview Report
+        const previewRes = await fetch(`${baseUrl}/preview-report`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(jsonData),
+        });
 
-      const previewData = await previewRes.json();
-      if (previewData && previewData.report_html) {
+        if (!previewRes.ok) {
+          throw new Error("Preview failed");
+        }
+
+        const previewData = await previewRes.json();
         reportText.innerHTML = previewData.report_html;
         reportContainer.style.display = "block";
-      } else {
-        reportText.innerHTML = "❌ Error generating preview.";
-        return;
-      }
 
-      // 2. Generate and prepare PDF for download
-      const pdfRes = await fetch(`${baseUrl}/generate-report`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(jsonData),
-      });
+        // 2. Generate PDF
+        const pdfRes = await fetch(`${baseUrl}/generate-report`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(jsonData),
+        });
 
-      if (pdfRes.ok) {
-        const blob = await pdfRes.blob();
-        const url = URL.createObjectURL(blob);
-        downloadLink.href = url;
-      } else {
-        alert("❌ Failed to generate PDF.");
+        if (pdfRes.ok) {
+          const blob = await pdfRes.blob();
+          const url = URL.createObjectURL(blob);
+          downloadLink.href = url;
+        } else {
+          alert("❌ PDF generation failed.");
+        }
+      } catch (err) {
+        alert("Something went wrong: " + err.message);
       }
     });
   </script>
