@@ -66,7 +66,7 @@
   <div id="report-container">
     <div id="report-text" style="margin-bottom: 20px;"></div>
     <h2>✅ Report Generated</h2>
-    <a id="download-link" href="#" download="Product_Report.pdf">
+    <a id="download-link" download="Product_Report.pdf">
       <button style="background-color: #007bff;">Download PDF</button>
     </a>
   </div>
@@ -82,35 +82,27 @@
       const formData = new FormData(form);
       const jsonData = Object.fromEntries(formData.entries());
 
-      try {
-        // 1. Preview Report
-        const previewRes = await fetch("https://product-transparency-report.onrender.com/preview-report", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(jsonData),
-        });
+      // Show preview
+      const previewRes = await fetch("/preview-report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(jsonData),
+      });
 
-        const previewData = await previewRes.json();
-        reportText.innerHTML = previewData.report_html;
-        reportContainer.style.display = "block";
+      const previewData = await previewRes.json();
+      reportText.innerHTML = previewData.report_html;
+      reportContainer.style.display = "block";
 
-        // 2. Generate PDF
-        const pdfRes = await fetch("https://product-transparency-report.onrender.com/generate-report", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(jsonData),
-        });
+      // Download PDF
+      const pdfRes = await fetch("/generate-report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(jsonData),
+      });
 
-        if (pdfRes.ok) {
-          const blob = await pdfRes.blob();
-          const url = URL.createObjectURL(blob);
-          downloadLink.href = url;
-        } else {
-          alert("❌ Failed to generate PDF.");
-        }
-      } catch (error) {
-        alert("⚠️ Error occurred: " + error.message);
-      }
+      const blob = await pdfRes.blob();
+      const url = window.URL.createObjectURL(blob);
+      downloadLink.href = url;
     });
   </script>
 </body>

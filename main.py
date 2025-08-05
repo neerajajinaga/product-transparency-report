@@ -8,7 +8,7 @@ import io
 
 app = FastAPI()
 
-# CORS to allow frontend access
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -27,7 +27,6 @@ class ProductData(BaseModel):
 
 @app.post("/preview-report")
 def preview_report(data: ProductData):
-    # Returns formatted HTML preview
     preview_text = f"""
     <strong>Product Name:</strong> {data.product_name}<br/>
     <strong>Category:</strong> {data.category}<br/>
