@@ -1,7 +1,6 @@
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -9,21 +8,13 @@ import io
 
 app = FastAPI()
 
-# CORS
+# CORS to allow frontend access
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # or list your frontend domain instead of "*"
-    allow_credentials=True,
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Serve static frontend
-app.mount("/", StaticFiles(directory=".", html=True), name="static")
-
-@app.get("/")
-def read_index():
-    return FileResponse("index.html")
 
 class ProductData(BaseModel):
     product_name: str
@@ -36,6 +27,7 @@ class ProductData(BaseModel):
 
 @app.post("/preview-report")
 def preview_report(data: ProductData):
+    # Returns formatted HTML preview
     preview_text = f"""
     <strong>Product Name:</strong> {data.product_name}<br/>
     <strong>Category:</strong> {data.category}<br/>

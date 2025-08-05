@@ -82,8 +82,6 @@
       const formData = new FormData(form);
       const jsonData = Object.fromEntries(formData.entries());
 
-      const baseURL = "https://product-transparency-report.onrender.com";
-
       try {
         // 1. Preview Report
         const previewRes = await fetch("https://product-transparency-report.onrender.com/preview-report", {
@@ -110,9 +108,8 @@
         } else {
           alert("❌ Failed to generate PDF.");
         }
-      } catch (err) {
-        alert("🚫 Error: Could not reach backend.");
-        console.error(err);
+      } catch (error) {
+        alert("⚠️ Error occurred: " + error.message);
       }
     });
   </script>
