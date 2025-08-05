@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -7,13 +9,20 @@ import io
 
 app = FastAPI()
 
-# CORS for frontend access
+# Allow frontend to talk to backend (CORS)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for now
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Serve static files (including index.html)
+app.mount("/", StaticFiles(directory=".", html=True), name="static")
+
+@app.get("/")
+def read_index():
+    return FileResponse("index.html")
 
 class ProductData(BaseModel):
     product_name: str
