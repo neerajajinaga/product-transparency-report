@@ -83,7 +83,7 @@
       const jsonData = Object.fromEntries(formData.entries());
 
       // Show preview
-      const previewRes = await fetch("http://127.0.0.1:8000/preview-report", {
+      const previewRes = await fetch("https://your-render-url.onrender.com/preview-report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(jsonData),
@@ -94,7 +94,7 @@
       reportContainer.style.display = "block";
 
       // Generate PDF
-      const pdfRes = await fetch("http://127.0.0.1:8000/generate-report", {
+      const pdfRes = await fetch("https://your-render-url.onrender.com/generate-report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(jsonData),
