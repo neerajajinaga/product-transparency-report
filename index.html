@@ -63,10 +63,11 @@
     <button type="submit">Generate Report</button>
   </form>
 
+  <!-- Report Preview + Download -->
   <div id="report-container">
     <div id="report-text" style="margin-bottom: 20px;"></div>
     <h2>✅ Report Generated</h2>
-    <a id="download-link" download="Product_Report.pdf">
+    <a id="download-link" href="#" download="Product_Report.pdf">
       <button style="background-color: #007bff;">Download PDF</button>
     </a>
   </div>
@@ -77,32 +78,43 @@
     const reportText = document.getElementById("report-text");
     const downloadLink = document.getElementById("download-link");
 
+    const baseUrl = "https://product-transparency-report.onrender.com/"; // Your deployment URL
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const formData = new FormData(form);
       const jsonData = Object.fromEntries(formData.entries());
 
-      // Show preview
-      const previewRes = await fetch("/preview-report", {
+      // 1. Fetch preview summary
+      const previewRes = await fetch(`${baseUrl}/preview-report`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(jsonData),
       });
 
       const previewData = await previewRes.json();
-      reportText.innerHTML = previewData.report_html;
-      reportContainer.style.display = "block";
+      if (previewData && previewData.report_html) {
+        reportText.innerHTML = previewData.report_html;
+        reportContainer.style.display = "block";
+      } else {
+        reportText.innerHTML = "❌ Error generating preview.";
+        return;
+      }
 
-      // Download PDF
-      const pdfRes = await fetch("/generate-report", {
+      // 2. Generate and prepare PDF for download
+      const pdfRes = await fetch(`${baseUrl}/generate-report`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(jsonData),
       });
 
-      const blob = await pdfRes.blob();
-      const url = window.URL.createObjectURL(blob);
-      downloadLink.href = url;
+      if (pdfRes.ok) {
+        const blob = await pdfRes.blob();
+        const url = URL.createObjectURL(blob);
+        downloadLink.href = url;
+      } else {
+        alert("❌ Failed to generate PDF.");
+      }
     });
   </script>
 </body>
