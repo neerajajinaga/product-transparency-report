@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -9,22 +9,22 @@ import io
 
 app = FastAPI()
 
-# CORS middleware to allow frontend access
+# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # or list your frontend domain instead of "*"
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Serve the static index.html
-app.mount("/static", StaticFiles(directory="."), name="static")
+# Serve static frontend
+app.mount("/", StaticFiles(directory=".", html=True), name="static")
 
 @app.get("/")
 def read_index():
     return FileResponse("index.html")
 
-# Data model for product input
 class ProductData(BaseModel):
     product_name: str
     category: str
@@ -34,7 +34,6 @@ class ProductData(BaseModel):
     expiry_date: str
     certifications: str
 
-# Endpoint for previewing the report
 @app.post("/preview-report")
 def preview_report(data: ProductData):
     preview_text = f"""
@@ -48,7 +47,6 @@ def preview_report(data: ProductData):
     """
     return {"report_html": preview_text}
 
-# Endpoint to generate PDF
 @app.post("/generate-report")
 def generate_pdf(data: ProductData):
     buffer = io.BytesIO()
@@ -57,8 +55,8 @@ def generate_pdf(data: ProductData):
 
     pdf.setFont("Helvetica-Bold", 16)
     pdf.drawString(50, y, "Product Transparency Report")
-    pdf.setFont("Helvetica", 12)
     y -= 40
+    pdf.setFont("Helvetica", 12)
 
     fields = [
         ("Product Name", data.product_name),

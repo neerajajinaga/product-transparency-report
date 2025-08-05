@@ -82,30 +82,37 @@
       const formData = new FormData(form);
       const jsonData = Object.fromEntries(formData.entries());
 
-      // Show preview
-      const previewRes = await fetch("https://your-render-url.onrender.com/preview-report", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(jsonData),
-      });
+      const baseURL = "https://product-transparency-report.onrender.com";
 
-      const previewData = await previewRes.json();
-      reportText.innerHTML = previewData.report_html;
-      reportContainer.style.display = "block";
+      try {
+        // 1. Preview Report
+        const previewRes = await fetch("https://product-transparency-report.onrender.com/preview-report", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(jsonData),
+        });
 
-      // Generate PDF
-      const pdfRes = await fetch("https://your-render-url.onrender.com/generate-report", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(jsonData),
-      });
+        const previewData = await previewRes.json();
+        reportText.innerHTML = previewData.report_html;
+        reportContainer.style.display = "block";
 
-      if (pdfRes.ok) {
-        const blob = await pdfRes.blob();
-        const url = URL.createObjectURL(blob);
-        downloadLink.href = url;
-      } else {
-        alert("❌ Failed to generate PDF.");
+        // 2. Generate PDF
+        const pdfRes = await fetch("https://product-transparency-report.onrender.com/generate-report", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(jsonData),
+        });
+
+        if (pdfRes.ok) {
+          const blob = await pdfRes.blob();
+          const url = URL.createObjectURL(blob);
+          downloadLink.href = url;
+        } else {
+          alert("❌ Failed to generate PDF.");
+        }
+      } catch (err) {
+        alert("🚫 Error: Could not reach backend.");
+        console.error(err);
       }
     });
   </script>
