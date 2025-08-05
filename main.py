@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -7,7 +8,10 @@ import io
 
 app = FastAPI()
 
-# Allow frontend to access backend
+# Serve index.html from root
+app.mount("/", StaticFiles(directory=".", html=True), name="static")
+
+# CORS Middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -45,8 +49,8 @@ def generate_pdf(data: ProductData):
 
     pdf.setFont("Helvetica-Bold", 16)
     pdf.drawString(50, y, "Product Transparency Report")
-    pdf.setFont("Helvetica", 12)
     y -= 40
+    pdf.setFont("Helvetica", 12)
 
     fields = [
         ("Product Name", data.product_name),
